@@ -38,7 +38,15 @@ C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\System.Web
 C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\System.Web.Http.WebHost.xml
 C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\obj\Debug\WebApplication2.dll
 C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\obj\Debug\WebApplication2.pdb
-C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\obj\Debug\WebApplication2.csprojResolveAssemblyReference.cache
 C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\System.Web.Cors.dll
 C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\System.Web.Http.Cors.dll
 C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\System.Web.Http.Cors.xml
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\MongoDB.Bson.dll
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\MongoDB.Driver.Core.dll
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\MongoDB.Driver.dll
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\MongoDB.Driver.Legacy.dll
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\MongoDB.Bson.xml
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\MongoDB.Driver.xml
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\MongoDB.Driver.Core.xml
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\bin\MongoDB.Driver.Legacy.xml
+C:\Users\imisgav\Desktop\projects\WebApplication1\WebApplication2\obj\Debug\WebApplication2.csprojResolveAssemblyReference.cache

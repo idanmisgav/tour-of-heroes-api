@@ -7,14 +7,20 @@ using WebApplication2.Models;
 using WebApplication2.Utils;
 
 namespace WebApplication2.data
-{
+{    
     public class HeroesDB_Manager
     {
+        public static bool DB_Changed = true;
+        public static Hero[] heroes = null;
         private static int maxId = 0;
 
         public static Hero[] GetCurrentHeroes()
         {
             List<Hero> heroesList = new List<Hero>();
+            if(!DB_Changed)
+            {
+                return heroes;
+            }
             int currMax = 0;
             string line;
             // Read the file and display it line by line.
@@ -25,7 +31,7 @@ namespace WebApplication2.data
                 char[] delimiterChars = { ':' };
                 string[] heroDetails = line.Split(delimiterChars);
                 int id = Int32.Parse(heroDetails[0]);
-                Hero currHero = new Hero { Id = id, Name = heroDetails[1] };
+                Hero currHero = new Hero { SerialNumber = id, Name = heroDetails[1] };
                 if(id > currMax)
                 {
                     currMax = id;
@@ -34,7 +40,9 @@ namespace WebApplication2.data
             }
             file.Close();
             maxId = currMax;
-            return heroesList.ToArray();
+            DB_Changed = false;
+            heroes = heroesList.ToArray();
+            return heroes;
         }
 
         public static void DeleteHeroFromDB(int id)
@@ -53,9 +61,10 @@ namespace WebApplication2.data
                     string fileContentAfterDeletion = fileContetnt.Replace(line, "");
                     File.WriteAllText(Constants.DB_PATH, fileContentAfterDeletion);
                     FileUtils.CleanEmptyLines(Constants.DB_PATH);
-                    return;
+                    break;
                 }
             }
+            DB_Changed = true;
             file.Close();
         }
 
@@ -63,6 +72,7 @@ namespace WebApplication2.data
         {
             int nextAvailableId = findNextId();
             File.AppendAllText(Constants.DB_PATH, "\r\n" + nextAvailableId + ":" + name);
+            DB_Changed = true;
         }
 
         private static int findNextId()
@@ -73,8 +83,15 @@ namespace WebApplication2.data
 
         public static void UpdateHeroInDB(Hero hero)
         {
-            string composeLine = hero.Id + ":" + hero.Name;
+            string composeLine = hero.SerialNumber + ":";
+            string composeNewHeroLine = composeLine + hero.Name;           
             string fileContetnt = File.ReadAllText(Constants.DB_PATH);
+            int indexOfLine = fileContetnt.IndexOf(composeLine);
+            int lengthToEndLine = StringUtils.findLengthUntilChar(fileContetnt, indexOfLine, '\r');
+            string oldHero = fileContetnt.Substring(indexOfLine, lengthToEndLine);
+            string result = fileContetnt.Replace(oldHero, composeNewHeroLine);
+            File.WriteAllText(Constants.DB_PATH, result);
+            DB_Changed = true;
         }
     }
 

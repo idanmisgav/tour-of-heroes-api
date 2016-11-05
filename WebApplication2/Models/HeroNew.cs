@@ -5,9 +5,9 @@ using System.Web;
 
 namespace WebApplication2.Models
 {
-    public class Hero
+    public class HeroNew
     {
-        public int SerialNumber { get; set; }
+        public string SerialNumber { get; set; }
         public string Name { get; set; }
     }
 }
