@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Threading.Tasks;
 using System.Web.Http;
-using System.Web.Http.Cors;
 using WebApplication2.data;
+using WebApplication2.dataAccess;
 using WebApplication2.Models;
 
 namespace WebApplication2.Controllers
@@ -17,8 +13,16 @@ namespace WebApplication2.Controllers
         [Route("getheroes")]
         public IHttpActionResult GetAllHeroes()
         {
-            Hero[] heroes = HeroesDB_Manager.GetCurrentHeroes();
+            if (!MongoDB_Manager.GetDB_Changed())
+            {
+                return Ok(MongoDB_Manager.GetHeroes());
+            }
+            MongoDB_Manager.GetCurrentHeroes();
+            Hero[] heroes = MongoDB_Manager.GetHeroes();
             return Ok(heroes);
+
+            //Hero[] heroes = HeroesDB_Manager.GetCurrentHeroes();
+            //return Ok(heroes);
         }
 
         [HttpDelete]
