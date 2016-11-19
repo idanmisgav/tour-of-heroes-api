@@ -1,86 +1,109 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using WebApplication2.Models;
 
 namespace WebApplication2.dataAccess
 {
     public class MongoDB_Manager
     {
-        private static IMongoDatabase heroesDB = null;
-        private static bool DB_Changed = true;
-        private static Hero[] heroes = null;
+        //private static IMongoDatabase heroesDB = null;
+        internal static bool DB_Changed = false;
+        internal static MongoDB_Initializer DB;
+        internal static Hero[] heroes;
 
         /** Get an updated type of heroes array */
         public static async void GetCurrentHeroes()
         {
-            /* Get all docs from collection */
-            IMongoCollection<BsonDocument> mainCollection = GetCollection("main");
-            IAsyncCursor<BsonDocument> task = await mainCollection.FindAsync(Builders<BsonDocument>.Filter.Empty);
-            List<BsonDocument> docs = await task.ToListAsync();
-
-            /* Retrieve heroes document and deserialize it into array */
-            BsonDocument heroesDocument = docs.FirstOrDefault();
-            BsonValue heroesValue = heroesDocument["heroes"];
-            List<Hero> heroesObj = BsonSerializer.Deserialize<List<Hero>>(heroesValue.ToJson());
-            Hero[] currHeroes = heroesObj.ToArray();
-
-            DB_Changed = false;
-            heroes = currHeroes;
+            try
+            {
+                /* Get all docs from collection */
+                IMongoCollection<BsonDocument> mainCollection = DB.mainCollection;
+                using (IAsyncCursor<BsonDocument> task = await mainCollection.FindAsync(Builders<BsonDocument>.Filter.Empty))
+                {
+                    List<BsonDocument> docs = await task.ToListAsync();                
+                    /* Retrieve heroes document and deserialize it into array */
+                    BsonDocument heroesDocument = docs.FirstOrDefault();
+                    BsonValue heroesValue = heroesDocument["heroes"];
+                    List<Hero> heroesObj = BsonSerializer.Deserialize<List<Hero>>(heroesValue.ToJson());
+                    Hero[] currHeroes = heroesObj.ToArray();
+                    heroes = currHeroes;
+                    DB_Changed = false;
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception.Message);
+            }            
         }
 
-        internal static void ConnectToMongoDB()
+        public static async void DeleteHeroFromDB(Hero hero)
         {
-            MongoClient mongo = new MongoClient(ConfigurationManager.AppSettings["connectionString"]);
-            heroesDB = mongo.GetDatabase("heroes");
+            IMongoCollection<BsonDocument> mainCollection = DB.mainCollection;
+            var result = await mainCollection.FindOneAndDeleteAsync(
+                         Builders<BsonDocument>.Filter.Eq(hero.SerialNumber.ToString(), hero.Name));
+            DB_Changed = true;
         }
 
-        /** Updates heroes variable to hold the up-to-date array of heroes as in DB */
-        //public static void GetCurrentHeroes()
-        //{
-        //    List<BsonDocument> docs = GetAllDocsFromCollection("main").Result;
-        //    BsonDocument heroesDocument = docs.FirstOrDefault();
-        //    BsonValue heroesValue = heroesDocument["heroes"];
-        //    List<Hero> heroesObj = BsonSerializer.Deserialize<List<Hero>>(heroesValue.ToJson());
-        //    Hero[] currHeroes = heroesObj.ToArray();
-        //    //DB_Changed = false;
-        //    heroes = currHeroes;
-        //}
-
-        /* returns the collection from app's DB by name */
-        private static IMongoCollection<BsonDocument> GetCollection(string collectionName)
+        public static void AddHeroToDB(Hero hero)
         {
-            return heroesDB.GetCollection<BsonDocument>(collectionName);
+            List<Hero> heroesAsList = heroes.OfType<Hero>().ToList();
+
+            //Generate a unique serialNumber for the new hero
+            hero.SerialNumber = GenerateUniqueSerialNumber(heroesAsList);
+
+            //Build the heroes BsonDocument
+            heroesAsList.Add(hero);
+            BsonArray bsonHeroesArray = BuildBsonArray(heroesAsList);
+            BsonDocument heroesDoc = BuildHeroesBsonDocument(bsonHeroesArray);
+
+            //Delete previous heroes BsonDocument and add the new one
+            IMongoCollection<BsonDocument> mainCollection = DB.mainCollection;
+            mainCollection.DeleteOne(Builders<BsonDocument>.Filter.Empty);
+            mainCollection.InsertOne(heroesDoc);
+            DB_Changed = true;
         }
 
-        /* returns all documents in a collection (as a list of Bson docs) */
-        private static async Task<List<BsonDocument>> GetAllDocsFromCollection(string collectionName)
+        /* Returns an array of heroes as bson document */
+        private static BsonArray BuildBsonArray(List<Hero> lst)
         {
-            IMongoCollection<BsonDocument> mainCollection = GetCollection(collectionName);
-            IAsyncCursor<BsonDocument> task = await mainCollection.FindAsync(Builders<BsonDocument>.Filter.Empty);
-            List<BsonDocument> docs = await task.ToListAsync();
-            return docs;
+            BsonArray result = new BsonArray();
+
+            foreach(Hero hero in lst)
+            {
+                BsonDocument bsonHero = new BsonDocument();
+                bsonHero.Add("SerialNumber", hero.SerialNumber);
+                bsonHero.Add("Name", hero.Name);
+
+                result.Add(bsonHero);
+            }
+            return result;
         }
 
-        /* Getters for static variables */
-        public static bool GetDB_Changed()
+        /* Returns a BsonDocument containing the heroes array */
+        private static BsonDocument BuildHeroesBsonDocument(BsonArray bsonHeroesArray)
         {
-            return DB_Changed;
+            BsonDocument heroesDoc = new BsonDocument();
+            heroesDoc.Add("heroes", bsonHeroesArray);
+            return heroesDoc;
         }
 
-        public static Hero[] GetHeroes()
+        /* Returns a unique serialNumber for the new added hero */
+        private static int GenerateUniqueSerialNumber(List<Hero> lstHeroes)
         {
-            return heroes;
+            int result = 0;
+            foreach(Hero hero in lstHeroes)
+            {
+                if (hero.SerialNumber > result)
+                    result = hero.SerialNumber;
+            }
+            return result + 1;
         }
-
-        public static IMongoDatabase GetDB()
-        {
-            return heroesDB;
-        }
-
     }
 }

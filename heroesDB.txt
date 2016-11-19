@@ -6,3 +6,4 @@
 18:Dr IQ
 19:Magma
 20:Tornado
+1:Toto

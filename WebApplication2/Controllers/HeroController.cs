@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Web.Http;
+using WebApplication2;
 using WebApplication2.data;
 using WebApplication2.dataAccess;
 using WebApplication2.Models;
@@ -13,23 +14,19 @@ namespace WebApplication2.Controllers
         [Route("getheroes")]
         public IHttpActionResult GetAllHeroes()
         {
-            if (!MongoDB_Manager.GetDB_Changed())
+            if (!MongoDB_Manager.DB_Changed)
             {
-                return Ok(MongoDB_Manager.GetHeroes());
+                return Ok(MongoDB_Manager.heroes);
             }
             MongoDB_Manager.GetCurrentHeroes();
-            Hero[] heroes = MongoDB_Manager.GetHeroes();
-            return Ok(heroes);
-
-            //Hero[] heroes = HeroesDB_Manager.GetCurrentHeroes();
-            //return Ok(heroes);
+            return Ok(MongoDB_Manager.heroes);
         }
 
         [HttpDelete]
-        [Route("deleteHero/{id}")]
-        public IHttpActionResult DeleteHero(int id)
+        [Route("deleteHero/{hero}")]
+        public IHttpActionResult DeleteHero([FromBody] Hero hero)
         {
-            HeroesDB_Manager.DeleteHeroFromDB(id);
+            MongoDB_Manager.DeleteHeroFromDB(hero);
             Hero[] heroes = HeroesDB_Manager.GetCurrentHeroes();
             return Ok(heroes);
         }
@@ -38,9 +35,9 @@ namespace WebApplication2.Controllers
         [Route("addNewHero")]
         public IHttpActionResult AddNewHero([FromBody] Hero hero)
         {
-            HeroesDB_Manager.AddHeroToDB(hero.Name);
-            Hero[] heroes = HeroesDB_Manager.GetCurrentHeroes();
-            return Ok(heroes);
+            MongoDB_Manager.AddHeroToDB(hero);
+            MongoDB_Manager.GetCurrentHeroes();
+            return Ok(MongoDB_Manager.heroes);
         }
 
         [HttpPut]

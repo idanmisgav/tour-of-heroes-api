@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net.Http.Formatting;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using WebApplication2.dataAccess;
@@ -17,8 +18,7 @@ namespace WebApplication2
 {
     public static class WebApiConfig
     {
-
-        public static void Register(HttpConfiguration config)
+        public static async void Register(HttpConfiguration config)
         {
             // Web API configuration and services
 
@@ -39,16 +39,10 @@ namespace WebApplication2
             jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
             /* Connect to Mongo DB */
-            MongoDB_Manager.ConnectToMongoDB();
-
-            //IMongoDatabase heroesDB = MongoDB_Manager.GetDB();
-            //IMongoCollection<BsonDocument> main = heroesDB.GetCollection<BsonDocument>("main");
-            //IAsyncCursor<BsonDocument> task = await main.FindAsync(Builders<BsonDocument>.Filter.Empty);
-            //List<BsonDocument> list = await task.ToListAsync();
-            //BsonDocument result = list.FirstOrDefault();
-            //BsonValue heroesObj = result["heroes"];
-            //List<Hero> d = BsonSerializer.Deserialize<List<Hero>>(heroesObj.ToJson());
-            //Hero[] heroes = d.ToArray();
+            MongoDB_Initializer mongo = new MongoDB_Initializer();
+            Hero[] awaitedHeroes = await mongo.GetHeroes();
+            MongoDB_Manager.DB = mongo;
+            MongoDB_Manager.heroes = mongo.heroes;
         }
     }
 }
